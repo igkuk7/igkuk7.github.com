@@ -1,0 +1,77 @@
+<html>
+<head>
+	<title>TLORMEngine Screens Example</title>
+
+	<!-- TLORM Engine -->
+	<script type="text/javascript" src="../js/TLORMEngine-min.js"></script>
+
+	<!-- Setup 'Game' just of screens and start it -->
+	<script type="text/javascript">
+		window.onload = function() {
+			var game = TLORMEngine.GameFromJSONObject({
+				"name": "Screens Example",
+				"width": 800,
+				"height": 600,
+				"screens": [
+					{ "type": "MenuScreen", "name": "Main Menu", "current_screen": "true", "args": {
+						"class": "MainMenu",
+						"show_back": "false",
+						"options": {
+							"Options": { "goto": "Options" },
+							"Credits": { "goto": "Credits" }
+						}
+					} },
+					{ "type": "OptionsScreen", "name": "Options", "args": {
+						"class": "Options",
+						"options": {
+							"Difficulty": { "setting": "ball_speed", "options": [ "Easy", "Hard" ], "default": "Easy" },
+							"Ball Speed": { "setting": "ball_speed", "options": [ "Slow", "Fast" ], "default": "Fast" },
+							"Ball Trail": { "setting": "ball_trail", "flag": "true" },
+							"Music": { "setting": "music", "flag": "true", "default": "true" },
+							"Sound Effects": { "setting": "sound_effects", "flag": "true", "default": "true" }
+						}
+					} },
+					{ "type": "Screen", "name": "Credits", "args": {
+						"class": "Credits",
+						"show_text": [
+							{ "class": "CreationInfo", "text": "Created with TLORM Engine" },
+							{ "class": "MoreInfo", "text": "More info..." }
+						],
+						"show_images": [
+							{ "class": "CreditsImage", "src": "img/credits.png" }
+						]
+					} }
+				]
+			});
+			
+			game.start();
+		};
+	</script>
+
+	<!-- Simple styling to render screens nicely -->
+	<style>
+		body { margin: 0; padding: 0;  }
+
+		body > div { background: #adc33e; width: 100%; height: 100%; font-family: Verdana; }
+		h1.name { text-align: center; padding: 10% 0 0.5%; }
+		a { text-decoration: none; color: inherit; }
+		a.back { width: 20%; text-align: center; padding: 0.5% 0; margin: 0 auto 1%; display: block; background: #bed44f; border: 1px solid #9cb22d; }
+		a.back:hover { background: #cfd55f; }
+
+		.MainMenu ul { text-align: center; margin: 0 auto; padding: 0; list-style: none; width: 100%; }
+		.MainMenu li { margin: 20px auto; padding: 0; background: #bed44f; border: 1px solid #9cb22d; width: 20%; }
+		.MainMenu li:hover { background: #cfd55f; }
+		.MainMenu li a { margin: 2% 0; width: 100%; display: block; }
+
+		.Credits span { text-align: center; margin: 0 auto; padding: 0;  width: 100%; display: block; }
+		.Credits span img { text-align: center; margin: 0 auto; padding: 0; }
+
+		.Options ul { text-align: center; margin: 0 auto; padding: 0; list-style: none; width: 100%; }
+		.Options li { margin: 20px auto; padding: 0; width: 20%; }
+		.Options li label { display: block; }
+	</style>
+</head>
+<body>
+	<h1>TLORMEngine Screens Example</h1>
+</body>
+</html>
