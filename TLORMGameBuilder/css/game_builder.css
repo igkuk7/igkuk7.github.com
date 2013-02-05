@@ -2,3 +2,7 @@
 
 
 td span, td input { display: block; }
+
+th.toptablelabel { text-align: center; }
+
+div#entity_component_container { overflow-x: auto; }

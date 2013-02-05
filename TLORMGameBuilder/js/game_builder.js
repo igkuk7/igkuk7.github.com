@@ -1,4 +1,18 @@
 
+
+var common_components = {
+	Position: true,
+	Render2D: true,
+	Collision: true,
+	Velocity: true,
+	Follow: true,
+	KeyInput: true,
+	MouseInput: true,
+	TouchInput: true,
+	Data: true,
+	RenderData: true,
+};
+
 $(document).ready(function() {
 
 	var local_json = loadGameConfig();
@@ -24,13 +38,17 @@ function buildEntityComponentTable(schema, json) {
 			args: o.properties.args.properties,
 			args_schema: o.properties.args,
 		};
-	});
+	}).filter(function(c) { return common_components[c.type]; } ).sort( function(a,b) { return a.type.localeCompare(b.type); } );
 	var component_type_headers = component_types.map(function(c) { return $("<th>").text(c.type); });
 
 	var table_head =
 		$("<thead>")
 			.append($("<tr>")
-				.append($("<th>").text("Entities \\ Components"))
+				.append($("<th>"))
+				.append($("<th>").attr("colspan", component_types.length).addClass("toptablelabel").text("Components"))
+				.append($("<th>")))
+			.append($("<tr>")
+				.append($("<th>").text("Entities"))
 				.append(component_type_headers)
 				.append($("<th>")));
 
@@ -61,7 +79,8 @@ function buildEntityComponentTable(schema, json) {
 								window.location = "play_game.html";
 							})))));
 
-	$("#entity_component_container").append($("<table>").append(table_head).append(table_body).append(table_foot));
+	$("#entity_component_container")
+		.append($("<table>").append(table_head).append(table_body).append(table_foot));
 
 	// add rows for each entity
 	for (var i=0; i<json.entities.length; ++i) {
@@ -82,7 +101,7 @@ function newEntityRow(table_body, component_types, json, entity) {
 
 	table_body
 		.append($("<tr>")
-			.append($("<td>")
+			.append($("<th>")
 				.append($("<span>").text(entity.name ).show().click(function(e) {
 					$(e.currentTarget).hide().siblings().show().select();
 				}))
