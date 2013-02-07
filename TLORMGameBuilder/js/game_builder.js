@@ -30,6 +30,10 @@ $(document).ready(function() {
 });
 
 function buildEntityComponentTable(schema, json) {
+	// add div for import/export dialog
+	var div = $("<div>").append($("<textarea>").attr("cols",80).attr("rows", 20)).hide();
+	$("#entity_component_container").append(div);
+
 	// header row of all components
 	var component_objects = schema.properties.entities.items.properties.components.items.type;
 	var component_types = component_objects.map(function(o) {
@@ -68,11 +72,57 @@ function buildEntityComponentTable(schema, json) {
 								saveGameConfig(json);
 								table_body.parent().unblock();
 						}))
-						.append($("<button>Show Config</button>")
+						.append($("<button>Import Config</button>")
 							.click(function() {
-								var display_config = JSON.stringify(json, null, "\t");
-								var url = "data:text/html;,"+encodeURI("<pre><code>"+display_config+"</code></pre>");
-								window.open(url, "_blank");
+								div.find("textarea").val("");
+								div.dialog({
+									width: "auto",
+									modal: true,
+									buttons: {
+										"Import": function() {
+											try {
+												var imported_config = JSON.parse(div.find("textarea").val());
+												if (imported_config) {
+													json = imported_config;
+													saveGameConfig(json);
+													$("#entity_component_container > table").children().remove();
+													buildEntityComponentTable(schema, json);
+												}
+											} catch(err) { }
+											$(this).dialog( "close" );
+										}
+									}
+								});
+							}))
+						.append($("<button>Export Config</button>")
+							.click(function() {
+								div.find("textarea").val(JSON.stringify(json, null, "\t"));
+								div.dialog({
+									width: "auto",
+									modal: true,
+									buttons: {
+										"Close": function() {
+											$(this).dialog( "close" );
+										}
+									}
+								});
+								//var display_config = JSON.stringify(json, null, "\t");
+								//var url = "data:text/html;,"+encodeURI("<pre><code>"+display_config+"</code></pre>");
+								//window.open(url, "_blank");
+							}))
+						.append($("<button>Reset to Pong</button>")
+							.click(function() {
+								json = pong_game_config();
+								saveGameConfig(json);
+								$("#entity_component_container > table").children().remove();
+								buildEntityComponentTable(schema, json);
+							}))
+						.append($("<button>Reset to Empty</button>")
+							.click(function() {
+								json = empty_game_config();
+								saveGameConfig(json);
+								$("#entity_component_container > table").children().remove();
+								buildEntityComponentTable(schema, json);
 							}))
 						.append($("<button>Play Game</button>")
 							.click(function() {
@@ -230,93 +280,101 @@ function loadGameConfig() {
 	if (local_json_stored) {
 		return JSON.parse(local_json_stored);
 	} else {
-		return {
-			"name": "Pong",
-			"entities": [
-				
-				{
-					"name": "Top",
-					"components": [
-						{ "type": "Position", "args": { "x": 0, "y": 0, "w": 800, "h": 10 } },
-						{ "type": "Render2D", "args": { "fill_colour": "#000000" } },
-						{ "type": "Collision", "args": { "group": "wall", "groups": [] } }
-					]
-				},
-				{
-					"name": "Bottom",
-					"components": [
-						{ "type": "Position", "args": { "x": 0, "y": 590, "w": 800, "h": 10 } },
-						{ "type": "Render2D", "args": { "fill_colour": "#000000" } },
-						{ "type": "Collision", "args": { "group": "wall", "groups": [] } }
-					]
-				},
-				{
-					"name": "Left",
-					"components": [
-						{ "type": "Position", "args": { "x": 0, "y": 0, "w": 10, "h": 600 } },
-						{ "type": "Render2D", "args": { "fill_colour": "#000000" } },
-						{ "type": "Collision", "args": { "group": "player_goal", "groups": [] } }
-					]
-				},
-				{
-					"name": "Right",
-					"components": [
-						{ "type": "Position", "args": { "x": 790, "y": 0, "w": 10, "h": 600 } },
-						{ "type": "Render2D", "args": { "fill_colour": "#000000" } },
-						{ "type": "Collision", "args": { "group": "opponent_goal", "groups": [] } }
-					]
-				},
-				
-				
-				{
-					"name": "Ball",
-					"components": [
-						{ "type": "Position", "args": { "x": 400, "y": 300, "w": 10, "h": 10 } },
-						{ "type": "Render2D", "args": { "fill_colour": "#33DDBB" } },
-						{ "type": "Velocity", "args": { "dx": -5, "dy": 3, "constant": true } },
-						{ "type": "Collision", "args": { "group": "ball", "groups": [ "wall", "paddle"], "resolution": "bounce" } },
-						{ "type": "Collision", "args": { "group": "ball", "groups": [ "paddle" ], "resolution": "edit_component", 
-						                                  "component": "Velocity", "position": "all", "function": "increase", "function_args": [ 0.5, 0.5 ] } },
-						{ "type": "Collision", "args": { "group": "ball", "groups": [ "player_goal" ], "resolution": "edit_component", 
-						                                  "entity": "Opponent", "component": "Data", "function": "addToData", "function_args": [ "score", 1 ] } },
-						{ "type": "Collision", "args": { "group": "ball", "groups": [ "opponent_goal" ], "resolution": "edit_component", 
-						                                  "entity": "Player", "component": "Data", "function": "addToData", "function_args": [ "score", 1 ] } },
-						{ "type": "Collision", "args": { "group": "ball", "groups": [ "player_goal", "opponent_goal" ], "resolution": "edit_component", 
-						                                  "component": "Velocity", "position": "all", "function": "setRandom", "function_args": [ -5, -3, 2, 4 ] } },
-						{ "type": "Collision", "args": { "group": "ball", "groups": [ "player_goal", "opponent_goal" ], "resolution": "edit_component", 
-						                                  "component": "Position", "function": "moveTo", "function_args": [ 400, 300 ] } }
-					]
-				},
-
-				
-				{
-					"name": "Player",
-					"components": [
-						{ "type": "Position", "args": { "x": 20, "y": 300, "w": 5, "h": 50 } },
-						{ "type": "Render2D", "args": { "fill_colour": "#DDBB33" } },
-						{ "type": "Collision", "args": { "group": "paddle", "groups": [ "wall"], "resolution": "push" } },
-						{ "type": "KeyInput", "args": { "map": {
-							"87": { "name": "Velocity", "args": { "dy": -4 } },
-							"83": { "name": "Velocity", "args": { "dy":  4 } }
-						} } },
-						{ "type": "Data", "args": { "score": 0 } },
-						{ "type": "RenderData", "args": { "x": 30, "y": 30 } },
-						{ "type": "Follow", "args": { "entity": "Ball", "dx": 0, "dy": 6, "move_middle": true } }
-					]
-				},
-
-				{
-					"name": "Opponent",
-					"components": [
-						{ "type": "Position", "args": { "x": 780, "y": 300, "w": 5, "h": 50 } },
-						{ "type": "Render2D", "args": { "fill_colour": "#DDBB33" } },
-						{ "type": "Collision", "args": { "group": "paddle", "groups": [ "wall"], "resolution": "push" } },
-						{ "type": "Data", "args": { "score": 0 } },
-						{ "type": "RenderData", "args": { "x": 710, "y": 30 } },
-						{ "type": "Follow", "args": { "entity": "Ball", "dx": 0, "dy": 5, "move_middle": true } }
-					]
-				}
-			]
-		};
+		return empty_game_config();
 	}
+}
+
+function empty_game_config() {
+	return { entities: [] };
+}
+
+function pong_game_config() {
+	return {
+		"name": "Pong",
+		"entities": [
+			
+			{
+				"name": "Top",
+				"components": [
+					{ "type": "Position", "args": { "x": 0, "y": 0, "w": 800, "h": 10 } },
+					{ "type": "Render2D", "args": { "fill_colour": "#000000" } },
+					{ "type": "Collision", "args": { "group": "wall", "groups": [] } }
+				]
+			},
+			{
+				"name": "Bottom",
+				"components": [
+					{ "type": "Position", "args": { "x": 0, "y": 590, "w": 800, "h": 10 } },
+					{ "type": "Render2D", "args": { "fill_colour": "#000000" } },
+					{ "type": "Collision", "args": { "group": "wall", "groups": [] } }
+				]
+			},
+			{
+				"name": "Left",
+				"components": [
+					{ "type": "Position", "args": { "x": 0, "y": 0, "w": 10, "h": 600 } },
+					{ "type": "Render2D", "args": { "fill_colour": "#000000" } },
+					{ "type": "Collision", "args": { "group": "player_goal", "groups": [] } }
+				]
+			},
+			{
+				"name": "Right",
+				"components": [
+					{ "type": "Position", "args": { "x": 790, "y": 0, "w": 10, "h": 600 } },
+					{ "type": "Render2D", "args": { "fill_colour": "#000000" } },
+					{ "type": "Collision", "args": { "group": "opponent_goal", "groups": [] } }
+				]
+			},
+			
+			
+			{
+				"name": "Ball",
+				"components": [
+					{ "type": "Position", "args": { "x": 400, "y": 300, "w": 10, "h": 10 } },
+					{ "type": "Render2D", "args": { "fill_colour": "#33DDBB" } },
+					{ "type": "Velocity", "args": { "dx": -5, "dy": 3, "constant": true } },
+					{ "type": "Collision", "args": { "group": "ball", "groups": [ "wall", "paddle"], "resolution": "bounce" } },
+					{ "type": "Collision", "args": { "group": "ball", "groups": [ "paddle" ], "resolution": "edit_component", 
+					                                  "component": "Velocity", "position": "all", "function": "increase", "function_args": [ 0.5, 0.5 ] } },
+					{ "type": "Collision", "args": { "group": "ball", "groups": [ "player_goal" ], "resolution": "edit_component", 
+					                                  "entity": "Opponent", "component": "Data", "function": "addToData", "function_args": [ "score", 1 ] } },
+					{ "type": "Collision", "args": { "group": "ball", "groups": [ "opponent_goal" ], "resolution": "edit_component", 
+					                                  "entity": "Player", "component": "Data", "function": "addToData", "function_args": [ "score", 1 ] } },
+					{ "type": "Collision", "args": { "group": "ball", "groups": [ "player_goal", "opponent_goal" ], "resolution": "edit_component", 
+					                                  "component": "Velocity", "position": "all", "function": "setRandom", "function_args": [ -5, -3, 2, 4 ] } },
+					{ "type": "Collision", "args": { "group": "ball", "groups": [ "player_goal", "opponent_goal" ], "resolution": "edit_component", 
+					                                  "component": "Position", "function": "moveTo", "function_args": [ 400, 300 ] } }
+				]
+			},
+
+			
+			{
+				"name": "Player",
+				"components": [
+					{ "type": "Position", "args": { "x": 20, "y": 300, "w": 5, "h": 50 } },
+					{ "type": "Render2D", "args": { "fill_colour": "#DDBB33" } },
+					{ "type": "Collision", "args": { "group": "paddle", "groups": [ "wall"], "resolution": "push" } },
+					{ "type": "KeyInput", "args": { "map": {
+						"87": { "name": "Velocity", "args": { "dy": -4 } },
+						"83": { "name": "Velocity", "args": { "dy":  4 } }
+					} } },
+					{ "type": "Data", "args": { "score": 0 } },
+					{ "type": "RenderData", "args": { "x": 30, "y": 30 } },
+					{ "type": "Follow", "args": { "entity": "Ball", "dx": 0, "dy": 6, "move_middle": true } }
+				]
+			},
+
+			{
+				"name": "Opponent",
+				"components": [
+					{ "type": "Position", "args": { "x": 780, "y": 300, "w": 5, "h": 50 } },
+					{ "type": "Render2D", "args": { "fill_colour": "#DDBB33" } },
+					{ "type": "Collision", "args": { "group": "paddle", "groups": [ "wall"], "resolution": "push" } },
+					{ "type": "Data", "args": { "score": 0 } },
+					{ "type": "RenderData", "args": { "x": 710, "y": 30 } },
+					{ "type": "Follow", "args": { "entity": "Ball", "dx": 0, "dy": 5, "move_middle": true } }
+				]
+			}
+		]
+	};
 }
