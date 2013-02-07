@@ -354,13 +354,14 @@ function pong_game_config() {
 					{ "type": "Position", "args": { "x": 20, "y": 300, "w": 5, "h": 50 } },
 					{ "type": "Render2D", "args": { "fill_colour": "#DDBB33" } },
 					{ "type": "Collision", "args": { "group": "paddle", "groups": [ "wall"], "resolution": "push" } },
-					{ "type": "KeyInput", "args": { "map": {
-						"87": { "name": "Velocity", "args": { "dy": -4 } },
-						"83": { "name": "Velocity", "args": { "dy":  4 } }
-					} } },
+					{ "type": "MouseInput", "args": { 
+						"move": { "type": "Translation", "args": { "move_middle": "true" }, "mouseYParam": "y" }
+					} }, 
+					{ "type": "TouchInput", "args": { 
+						"drag": { "type": "Translation", "args": { "move_middle": "true" }, "mouseYParam": "y" }
+					} }, 
 					{ "type": "Data", "args": { "score": 0 } },
-					{ "type": "RenderData", "args": { "x": 30, "y": 30 } },
-					{ "type": "Follow", "args": { "entity": "Ball", "dx": 0, "dy": 6, "move_middle": true } }
+					{ "type": "RenderData", "args": { "x": 30, "y": 30 } }
 				]
 			},
 
